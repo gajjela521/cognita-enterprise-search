@@ -2,20 +2,16 @@ services:
   # 1. Java API Gateway
   - type: web
     name: cognita-api-gateway
-    env: java
+    env: docker
     rootDir: cognita-api-gateway
     region: oregon
     plan: free
-    buildCommand: "./gradlew clean build -x test"
-    startCommand: "java -jar build/libs/cognita-api-gateway-0.0.1-SNAPSHOT.jar"
+    dockerContext: cognita-api-gateway
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
       - key: VECTOR_SERVICE_URL
-        fromService:
-          type: web
-          name: cognita-vector-service
-          property: url
+        value: http://cognita-vector-service:10000
     healthCheckPath: /api/health
 
   # 2. Python Vector Service
@@ -26,7 +22,8 @@ services:
     region: oregon
     plan: free
     buildCommand: "pip install -r requirements.txt && python src/indexer.py"
-    startCommand: "gunicorn server:app"
     envVars:
       - key: PYTHON_VERSION
         value: 3.10.0
+      - key: PORT
+        value: 10000
