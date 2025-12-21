@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cognita Light</title>
+    <style>
+        :root {
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --primary: #8b5cf6;
+            --primary-hover: #7c3aed;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --border-color: rgba(148, 163, 184, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 2rem;
+            box-sizing: border-box;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(139, 92, 246, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(56, 189, 248, 0.15) 0px, transparent 50%);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0 0 0.5rem 0;
+            background: linear-gradient(to right, #c084fc, #38bdf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 800;
+        }
+
+        h2 {
+            font-size: 1.25rem;
+            color: var(--text-muted);
+            margin: 0;
+            font-weight: 400;
+        }
+
+        .search-container {
+            width: 100%;
+            max-width: 700px;
+            margin-bottom: 2rem;
+        }
+
+        form {
+            position: relative;
+            display: flex;
+            gap: 1rem;
+        }
+
+        input {
+            width: 100%;
+            padding: 1rem 1.5rem;
+            font-size: 1.1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.6);
+            color: white;
+            outline: none;
+            transition: border-color 0.2s;
+            backdrop-filter: blur(4px);
+        }
+
+        input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.1);
+        }
+
+        button {
+            padding: 0 1.5rem;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            white-space: nowrap;
+        }
+
+        button:hover {
+            background: var(--primary-hover);
+        }
+
+        button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        #results {
+            width: 100%;
+            max-width: 700px;
+            display: grid;
+            gap: 1rem;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            backdrop-filter: blur(12px);
+            transition: transform 0.2s;
+        }
+
+        .result-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(139, 92, 246, 0.3);
+        }
+
+        .score {
+            display: inline-block;
+            font-size: 0.8rem;
+            padding: 0.25rem 0.75rem;
+            background: rgba(139, 92, 246, 0.2);
+            color: #c4b5fd;
+            border-radius: 999px;
+            margin-bottom: 0.75rem;
+        }
+
+        .text {
+            line-height: 1.6;
+            color: var(--text-muted);
+            margin: 0;
+        }
+
+        .error {
+            color: #ef4444;
+            margin-top: 1rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Cognita Light</h1>
+        <h2>Local RAG Interface</h2>
+    </header>
+
+    <div class="search-container">
+        <form id="searchForm">
+            <input type="text" id="queryInput" placeholder="Ask anything about your documents..." required autocomplete="off">
+            <button type="submit" id="searchBtn">Search</button>
+        </form>
+        <div id="error" class="error"></div>
+    </div>
+
+    <div id="results">
+        <!-- Results will appear here -->
+    </div>
+
+    <script>
+        const form = document.getElementById('searchForm');
+        const input = document.getElementById('queryInput');
+        const btn = document.getElementById('searchBtn');
+        const resultsDiv = document.getElementById('results');
+        const errorDiv = document.getElementById('error');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const query = input.value.trim();
+            if (!query) return;
+
+            // UI State: Loading
+            btn.disabled = true;
+            btn.textContent = '...';
+            errorDiv.textContent = '';
+            resultsDiv.innerHTML = '';
+
+            try {
+                // Since this HTML is served by the Spring Boot app, we can use relative path
+                const response = await fetch('/api/query', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ text: query })
+                });
+
+                if (!response.ok) throw new Error('Failed to fetch results');
+
+                const data = await response.json();
+                
+                if (data.results && data.results.length > 0) {
+                    data.results.forEach(result => {
+                        const card = document.createElement('div');
+                        card.className = 'result-card';
+                        card.innerHTML = `
+                            <div class="score">Match Score: ${result.score.toFixed(4)}</div>
+                            <p class="text">${escapeHtml(result.text)}</p>
+                        `;
+                        resultsDiv.appendChild(card);
+                    });
+                } else {
+                    resultsDiv.innerHTML = '<p style="text-align:center; color: var(--text-muted)">No results found.</p>';
+                }
+
+            } catch (err) {
+                console.error(err);
+                errorDiv.textContent = 'Error connecting to backend services.';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Search';
+            }
+        });
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

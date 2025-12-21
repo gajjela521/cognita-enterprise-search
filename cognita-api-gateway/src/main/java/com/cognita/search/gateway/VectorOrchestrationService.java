@@ -16,7 +16,9 @@ import java.util.Map;
 public class VectorOrchestrationService {
 
     private final RestTemplate restTemplate;
-    private final String VECTOR_SERVICE_URL = "http://localhost:5001/query";
+
+    @org.springframework.beans.factory.annotation.Value("${vector.service.url:http://localhost:5001}")
+    private String vectorServiceUrl;
 
     public VectorOrchestrationService() {
         this.restTemplate = new RestTemplate();
@@ -33,7 +35,9 @@ public class VectorOrchestrationService {
         HttpEntity<Map<String, Object>> request = new HttpEntity<>(requestBody, headers);
 
         try {
-            ResponseEntity<Map> response = restTemplate.postForEntity(VECTOR_SERVICE_URL, request, Map.class);
+            // Append /query endpoint to the base URL
+            String endpoint = vectorServiceUrl.endsWith("/query") ? vectorServiceUrl : vectorServiceUrl + "/query";
+            ResponseEntity<Map> response = restTemplate.postForEntity(endpoint, request, Map.class);
             return response.getBody();
         } catch (Exception e) {
             throw new RuntimeException("Failed to query Vector Service: " + e.getMessage());

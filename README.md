@@ -1,65 +1,47 @@
 # Local RAG Challenge
 
-A robust Retrieval Augmented Generation system with a multi-service architecture.
+This project implements a local RAG system with 3 components:
 
-## Architecture
-
-*   **Frontend**: React + TypeScript + Vite (Port 5173)
-*   **Backend**: Spring Boot 3 (Port 8080)
-*   **RAG Engine**: Python + Flask (Port 5000)
+1.  **Vector Service (Python/Flask)**: Handles text embedding and similarity search (FAISS).
+2.  **API Gateway (Java/Spring Boot)**: Orchestrates requests and acts as the backend for the frontend.
+3.  **Console (React/Vite)**: A beautiful UI for searching documents.
 
 ## Prerequisites
 
+*   Python 3.10+
 *   Java 17+
 *   Node.js 18+
-*   Python 3.9+
 
-## Setup & Running
+## Quick Start
 
-You need 3 terminal windows to run the full stack locally.
-
-### 1. RAG Engine (Python)
-This service handles the vector database (FAISS) and embeddings.
-
+### 1. Start Vector Service (The Brain)
 ```bash
-cd rag-engine
-# Create virtual env (optional but recommended)
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-
-# Install dependencies
+cd cognita-vector-service
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
-# Run the server
+# Run the indexer to process data/sample.txt
+python src/indexer.py
+
+# Start the server (Port 5001)
 python server.py
 ```
 
-### 2. Backend API (Spring Boot)
-This is the gateway that bridges the Frontend and the RAG Engine.
-
+### 2. Start API Gateway (The Middleware)
 ```bash
-cd backend
+cd cognita-api-gateway
 ./gradlew bootRun
+# Runs on Port 8080
 ```
 
-### 3. Frontend (React)
-The user interface.
-
+### 3. Start Frontend (The UI)
 ```bash
-cd frontend
+cd cognita-console
 npm install
 npm run dev
+# Open http://localhost:5173
 ```
 
-Then open [http://localhost:5173](http://localhost:5173).
-
-## Deployment
-
-*   **Frontend**: Automatically deployed to GitHub Pages via GitHub Actions on push to `main`.
-*   **Backend**: Currently configured for local development. For production, deploy the JAR to a cloud provider (Render, Railway, AWS, etc.).
-
-## Project Structure
-
-*   `/backend` - Spring Boot Application
-*   `/frontend` - React Application
-*   `/rag-engine` - Python FAISS/SentenceTransformer Logic
+## Architecture
+[React UI] -> [Spring Boot Gateway] -> [Python Vector Service] -> [FAISS Index]

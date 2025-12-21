@@ -3,10 +3,11 @@ services:
   - type: web
     name: cognita-api-gateway
     env: java
+    rootDir: cognita-api-gateway
     region: oregon
     plan: free
     buildCommand: "./gradlew clean build -x test"
-    startCommand: "java -jar build/libs/cognita-api-gateway-1.0.0.jar"
+    startCommand: "java -jar build/libs/cognita-api-gateway-0.0.1-SNAPSHOT.jar"
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
@@ -21,13 +22,11 @@ services:
   - type: web
     name: cognita-vector-service
     env: python
+    rootDir: cognita-vector-service
     region: oregon
     plan: free
-    repo: https://github.com/render-examples/flask-hello-world # Placeholder, assumes monorepo usually requires context
-    # Render monorepo support needs Root Directory setting in the UI or buildCommand adjustment
-    rootDir: cognita-vector-service
-    buildCommand: "pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt && python src/indexer.py"
     startCommand: "gunicorn server:app"
     envVars:
       - key: PYTHON_VERSION
-        value: 3.9.0
+        value: 3.10.0

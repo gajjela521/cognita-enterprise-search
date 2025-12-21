@@ -24,8 +24,9 @@ function App() {
     setResults([]);
 
     try {
-      // Connects to Spring Boot Backend
-      const response = await fetch('http://localhost:8080/api/query', {
+      // Connects to Spring Boot Backend (env var or default localhost)
+      const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+      const response = await fetch(`${API_BASE_URL}/api/query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
