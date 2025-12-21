@@ -1,0 +1,10 @@
+Retrieval-Augmented Generation (RAG) is a technique for enhancing the accuracy and reliability of generative AI models with facts fetched from external sources.
+By building on a Large Language Model (LLM), RAG allows you to use your own data to generate responses.
+FAISS (Facebook AI Similarity Search) is a library for efficient similarity search and clustering of dense vectors.
+Sentence Transformers provides an easy method to compute dense vector representations for sentences, paragraphs, and images.
+In a local RAG setup, you typically index your documents into a vector database (like FAISS) and then retrieve relevant chunks based on a user query.
+This retrieved context is then passed to an LLM to generate a final answer.
+For day 1 and 2, we are focusing on the retrieval part: indexing text and finding the most similar chunks.
+The API layer will be built subsequently using frameworks like FastAPI or Spring Boot.
+GitHub Actions will be used for CI/CD to build and test the application.
+React will be used for the frontend, hosted on GitHub Pages.
